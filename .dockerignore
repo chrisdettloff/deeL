@@ -1,0 +1,22 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Build artifacts
+**/bin
+**/obj
+**/dist
+
+# Dependencies
+**/node_modules
+**/vendor
+
+# Other
+README.md
+LICENSE
+*.log
