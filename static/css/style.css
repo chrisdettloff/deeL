@@ -319,6 +319,18 @@ button.text:hover {
     color: var(--primary-color);
 }
 
+/* Styles for read/unread articles */
+.article.read {
+    opacity: 0.75; /* Make read articles slightly dimmer */
+}
+
+.article.read .article-content h2 a {
+    color: var(--text-muted); /* Dim the title of read articles */
+}
+.article.read .article-content h2 a:hover {
+    color: var(--primary-color); /* Still allow hover highlight */
+}
+
 .article-meta {
     color: var(--text-muted);
     font-size: 0.85rem;
@@ -327,6 +339,31 @@ button.text:hover {
     align-items: center;
     gap: 0.5rem;
     flex-wrap: wrap;
+}
+
+/* Style for the small Mark Read/Unread button */
+.article-meta form button.small {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    background-color: var(--bg-secondary);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    line-height: 1.2; /* Adjust line height for small buttons */
+}
+
+.article-meta form button.small:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Different style for "Mark as Unread" button when item is already read */
+.article.read .article-meta form button.small {
+    color: var(--text-secondary);
+    border: 1px solid var(--text-secondary);
+}
+.article.read .article-meta form button.small:hover {
+    background-color: var(--text-secondary);
+    color: white;
 }
 
 .article-source {
@@ -446,3 +483,38 @@ button.text:hover {
         display: flex;
     }
 }
+
+/* Styles for filter buttons */
+.filter-button {
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    transition: var(--transition);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.filter-button:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+.filter-button.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Style for selected article */
+.article.selected {
+    border-left-width: 5px; /* Make the existing primary color border thicker or change border */
+    border-left-color: var(--primary-hover); /* Use a slightly different color for selection */
+    box-shadow: 0 0 12px rgba(67, 97, 238, 0.3); /* Add a more prominent shadow */
+}
+.article.read.selected {
+    border-left-color: var(--text-muted); /* Different selection color if already read */
+     box-shadow: 0 0 12px rgba(108, 117, 125, 0.3);
+}
+
+
+/* Ensure main action buttons (like Mark All Unread) use existing button styles */
+/* No new style needed if it reuses the default button style */

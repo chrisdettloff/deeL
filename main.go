@@ -27,6 +27,7 @@ type FeedItem struct {
 	Published     string // formatted for display
 	FeedTitle     string
 	PublishedTime time.Time // used for sorting, not shown in template
+	Read          bool      // New field: true if read, false if unread
 }
 
 // PageData holds the data for our templates
@@ -34,6 +35,8 @@ type PageData struct {
 	Feeds     []Feed
 	FeedItems []FeedItem
 	Error     string
+	Filter    string // "all" or "unread"
+	BaseURL   string // e.g., "/"
 }
 
 var (
@@ -45,8 +48,9 @@ var (
 )
 
 const (
-	dbPath     = "rss_feeds.db"
-	bucketName = "feeds"
+	dbPath                   = "rss_feeds.db"
+	bucketName               = "feeds"
+	feedItemStatusBucketName = "feedItemStatus" // New bucket for read statuses
 )
 
 func init() {
@@ -62,6 +66,11 @@ func init() {
 	// Create bucket if it doesn't exist
 	err = db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
+		if err != nil {
+			return err
+		}
+		// Create bucket for feed item statuses if it doesn't exist
+		_, err = tx.CreateBucketIfNotExists([]byte(feedItemStatusBucketName))
 		return err
 	})
 	if err != nil {
@@ -116,6 +125,37 @@ func removeFeedFromDB(feedURL string) error {
 	})
 }
 
+// getFeedItemReadStatus retrieves the read status of a feed item from the database.
+// It defaults to false (unread) if the item is not found.
+func getFeedItemReadStatus(link string) bool {
+	var isRead bool
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(feedItemStatusBucketName))
+		val := b.Get([]byte(link))
+		if val != nil && string(val) == "true" {
+			isRead = true
+		}
+		return nil
+	})
+	if err != nil {
+		log.Printf("Error getting read status for %s: %v", link, err)
+		return false // Default to unread on error
+	}
+	return isRead
+}
+
+// setFeedItemReadStatus stores the read status of a feed item in the database.
+func setFeedItemReadStatus(link string, read bool) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(feedItemStatusBucketName))
+		val := "false"
+		if read {
+			val = "true"
+		}
+		return b.Put([]byte(link), []byte(val))
+	})
+}
+
 func main() {
 	defer db.Close()
 
@@ -128,6 +168,8 @@ func main() {
 	http.HandleFunc("/add", handleAddFeed)
 	http.HandleFunc("/refresh", handleRefresh)
 	http.HandleFunc("/remove", handleRemoveFeed)
+	http.HandleFunc("/toggle-read", handleToggleReadStatus) // New handler
+	http.HandleFunc("/mark-all-read", handleMarkAllRead)   // New handler
 
 	// Start the server
 	log.Println("Starting server on :8080")
@@ -135,11 +177,37 @@ func main() {
 }
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	currentFilter := r.URL.Query().Get("filter")
+	if currentFilter == "" {
+		currentFilter = "all" // Default to showing all items
+	}
+
+	var itemsToDisplay []FeedItem
+	if currentFilter == "unread" {
+		for _, item := range feedItems {
+			if !item.Read {
+				itemsToDisplay = append(itemsToDisplay, item)
+			}
+		}
+	} else {
+		itemsToDisplay = make([]FeedItem, len(feedItems))
+		copy(itemsToDisplay, feedItems)
+	}
+
 	data := PageData{
 		Feeds:     feeds,
-		FeedItems: feedItems,
+		FeedItems: itemsToDisplay,
+		Filter:    currentFilter,
+		BaseURL:   "/", // Assuming the app runs at the root
 	}
-	templates.ExecuteTemplate(w, "index.html", data)
+	err := templates.ExecuteTemplate(w, "index.html", data)
+	if err != nil {
+		log.Printf("Error executing template: %v", err)
+		http.Error(w, "Failed to render page", http.StatusInternalServerError)
+	}
 }
 
 func handleAddFeed(w http.ResponseWriter, r *http.Request) {
@@ -219,6 +287,7 @@ func handleAddFeed(w http.ResponseWriter, r *http.Request) {
 			Published:     formatted,
 			FeedTitle:     feed.Title,
 			PublishedTime: pubTime,
+			Read:          getFeedItemReadStatus(item.Link), // Get existing or default to unread
 		})
 	}
 	sortFeedItemsByDate(feedItems)
@@ -229,7 +298,7 @@ func handleAddFeed(w http.ResponseWriter, r *http.Request) {
 
 func handleRefresh(w http.ResponseWriter, r *http.Request) {
 	refreshFeeds()
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther) // Redirect back, preserving filters
 }
 
 func handleRemoveFeed(w http.ResponseWriter, r *http.Request) {
@@ -258,7 +327,7 @@ func handleRemoveFeed(w http.ResponseWriter, r *http.Request) {
 		refreshFeeds()
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther) // Redirect back
 }
 
 func refreshFeeds() {
@@ -298,12 +367,70 @@ func refreshFeeds() {
 				Link:          item.Link,
 				Description:   item.Description,
 				Published:     formatted,
-				FeedTitle:     parsedFeed.Title,
+				FeedTitle:     parsedFeed.Title, // Use parsedFeed.Title here
 				PublishedTime: pubTime,
+				Read:          getFeedItemReadStatus(item.Link), // Get existing or default to unread
 			})
 		}
 	}
 	sortFeedItemsByDate(feedItems)
+}
+
+// handleToggleReadStatus toggles the read/unread status of a single feed item.
+func handleToggleReadStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/", http.StatusMethodNotAllowed)
+		return
+	}
+
+	itemLink := r.FormValue("link")
+	if itemLink == "" {
+		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther) // Redirect back if link is missing
+		return
+	}
+
+	mutex.Lock()
+	currentStatus := getFeedItemReadStatus(itemLink)
+	newStatus := !currentStatus
+	err := setFeedItemReadStatus(itemLink, newStatus)
+	if err != nil {
+		log.Printf("Error toggling read status for %s: %v", itemLink, err)
+		// Optionally, add error handling to show to user via PageData.Error
+	}
+
+	// Update in-memory feedItems for immediate reflection
+	for i, item := range feedItems {
+		if item.Link == itemLink {
+			feedItems[i].Read = newStatus
+			break
+		}
+	}
+	mutex.Unlock() // Unlock before redirect
+
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther) // Redirect back to the previous page
+}
+
+// handleMarkAllRead marks all currently unread feed items as read.
+func handleMarkAllRead(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/", http.StatusMethodNotAllowed)
+		return
+	}
+
+	mutex.Lock()
+	for i, item := range feedItems {
+		if !item.Read {
+			err := setFeedItemReadStatus(item.Link, true)
+			if err != nil {
+				log.Printf("Error marking item %s as read during mark all: %v", item.Link, err)
+				// Continue trying to mark others
+			}
+			feedItems[i].Read = true // Update in-memory representation
+		}
+	}
+	mutex.Unlock() // Unlock before redirect
+
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
 // parseDate attempts to parse a date string using common RSS/Atom formats

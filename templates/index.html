@@ -108,17 +108,28 @@
         
         <!-- Main Content Area -->
         <main class="main-content">
+            <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span style="font-weight: 500;">Filter:</span>
+                <a href="{{.BaseURL}}?filter=all" class="filter-button {{if or (eq .Filter "all") (eq .Filter "")}}active{{end}}">All Articles</a>
+                <a href="{{.BaseURL}}?filter=unread" class="filter-button {{if eq .Filter "unread"}}active{{end}}">Unread Only</a>
+                <form action="/mark-all-read" method="post" style="margin-left: auto; margin-right: 10px;">
+                    <button type="submit">Mark All Unread as Read</button>
+                </form>
+                <button id="global-toggle-read-button" class="button" style="display: none;">Toggle Read/Unread</button>
+            </div>
+
             {{if .FeedItems}}
                 <div class="articles">
                     {{range .FeedItems}}
-                        <div class="article">
+                        <div class="article {{if .Read}}read{{else}}unread{{end}}" data-link="{{.Link}}" data-read="{{.Read}}">
                             <div class="article-content">
-                                <h2><a href="{{.Link}}" target="_blank">{{.Title}}</a></h2>
+                                <h2><a href="{{.Link}}" target="_blank" rel="noopener noreferrer">{{.Title}}</a></h2>
                                 <div class="article-meta">
                                     <span class="article-source">{{.FeedTitle}}</span>
                                     {{if .Published}}
                                         <span>{{.Published}}</span>
                                     {{end}}
+                                    <!-- Removed per-item toggle button form -->
                                 </div>
                                 <div class="article-description">
                                     {{.Description | printf "%s"}}
