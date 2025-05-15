@@ -1,6 +1,7 @@
 # deeL
 
 A minimalist RSS feed reader with a clean interface and dark mode support.
+![deeL Logo](static/images/deeL-logo.png)
 
 ## Features
 
