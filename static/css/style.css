@@ -264,7 +264,7 @@ button.text:hover {
 .articles {
     display: grid;
     gap: 1.5rem;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: 1fr; /* Changed from repeat(auto-fill, minmax(300px, 1fr)) */
 }
 
 .article {
@@ -408,13 +408,13 @@ button.text:hover {
     }
     
     .articles {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: 1fr; /* Changed from repeat(auto-fill, minmax(250px, 1fr)) */
     }
 }
 
 @media (max-width: 768px) {
     .articles {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* This was already 1fr, so it's consistent */
     }
     
     /* Collapsible sidebar for mobile */
