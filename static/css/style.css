@@ -6,8 +6,8 @@
     --text-secondary: #495057;
     --text-muted: #6c757d;
     --border-color: #e9ecef;
-    --primary-color: #4361ee;
-    --primary-hover: #3a56d4;
+    --primary-color: #E77E24; /* Updated */
+    --primary-hover: #D0701F; /* Updated - darker orange */
     --danger-color: #e63946;
     --success-color: #2a9d8f;
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -24,8 +24,8 @@
     --text-secondary: #adb5bd;
     --text-muted: #6c757d;
     --border-color: #2c2c2c;
-    --primary-color: #4361ee;
-    --primary-hover: #5470f5;
+    --primary-color: #E77E24; /* Updated */
+    --primary-hover: #F38D3A; /* Updated - lighter/brighter orange */
     --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
