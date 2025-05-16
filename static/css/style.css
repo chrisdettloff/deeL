@@ -254,6 +254,22 @@ button.text:hover {
     box-shadow: var(--card-shadow);
 }
 
+.feed-item.active-feed-filter {
+    background-color: var(--primary-color);
+    border-left-color: var(--primary-hover); /* Darken the left border a bit */
+}
+
+.feed-item.active-feed-filter .feed-title {
+    color: white;
+    font-weight: 600;
+}
+
+.feed-title-link {
+    text-decoration: none;
+    flex-grow: 1; /* Allow link to take available space */
+    overflow: hidden; /* Prevent title from breaking layout */
+}
+
 .feed-title {
     font-weight: 500;
     overflow: hidden;
@@ -502,6 +518,13 @@ button.text:hover {
 .filter-button.active {
     background-color: var(--primary-color);
     color: white;
+}
+
+/* New style for when a feed filter is active, but the main filter is also active */
+.filter-button.semi-active {
+    background-color: var(--primary-hover); /* A slightly different shade */
+    color: white;
+    border-color: var(--primary-color);
 }
 
 /* Style for selected article */

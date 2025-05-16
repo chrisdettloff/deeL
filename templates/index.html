@@ -88,10 +88,21 @@
                     
                     <div class="feeds-list">
                         {{range .Feeds}}
-                            <div class="feed-item">
-                                <div class="feed-title" title="{{.Title}}">
-                                    {{.Title}}
-                                </div>
+                            <div class="feed-item {{if eq .URL $.CurrentFeedURL}}active-feed-filter{{end}}">
+                                {{/* Construct the link dynamically */}}
+                                {{ $feedFilterLink := "" }}
+                                {{ if eq .URL $.CurrentFeedURL }}
+                                    {{/* This feed is currently active, link should clear it but keep read/unread filter */}}
+                                    {{ $feedFilterLink = printf "%s?filter=%s" $.BaseURL $.Filter }}
+                                {{ else }}
+                                    {{/* This feed is not active, link should activate it and keep read/unread filter */}}
+                                    {{ $feedFilterLink = printf "%s?filter=%s&feedURL=%s" $.BaseURL $.Filter (.URL | urlquery) }}
+                                {{ end }}
+                                <a href="{{ $feedFilterLink }}" class="feed-title-link" title="{{.Title}}">
+                                    <div class="feed-title">
+                                        {{.Title}}
+                                    </div>
+                                </a>
                                 <form action="/remove" method="post" onsubmit="return confirm('Remove this feed?');">
                                     <input type="hidden" name="feed_url" value="{{.URL}}">
                                     <button type="submit" class="text">
@@ -126,8 +137,8 @@
         <main class="main-content">
             <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <span style="font-weight: 500;">Filter:</span>
-                <a href="{{.BaseURL}}?filter=all" class="filter-button {{if or (eq .Filter "all") (eq .Filter "")}}active{{end}}">All Articles</a>
-                <a href="{{.BaseURL}}?filter=unread" class="filter-button {{if eq .Filter "unread"}}active{{end}}">Unread Only</a>
+                <a href="{{.BaseURL}}?filter=all{{if .CurrentFeedURL}}&feedURL={{.CurrentFeedURL | urlquery}}{{end}}" class="filter-button {{if and (or (eq .Filter "all") (eq .Filter "")) (not .CurrentFeedURL)}}active{{else if and (or (eq .Filter "all") (eq .Filter "")) .CurrentFeedURL}} semi-active {{end}}">All Articles ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})</a>
+                <a href="{{.BaseURL}}?filter=unread{{if .CurrentFeedURL}}&feedURL={{.CurrentFeedURL | urlquery}}{{end}}" class="filter-button {{if and (eq .Filter "unread") (not .CurrentFeedURL) }}active{{else if and (eq .Filter "unread") .CurrentFeedURL}} semi-active {{end}}">Unread Only ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})</a>
                 <form action="/mark-all-read" method="post" style="margin-left: auto; margin-right: 10px;">
                     <button type="submit">Mark All Unread as Read</button>
                 </form>

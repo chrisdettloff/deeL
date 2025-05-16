@@ -24,19 +24,21 @@ type FeedItem struct {
 	Title         string
 	Link          string
 	Description   string
-	Published     string // formatted for display
+	Published     string    // formatted for display
 	FeedTitle     string
 	PublishedTime time.Time // used for sorting, not shown in template
-	Read          bool      // New field: true if read, false if unread
+	Read          bool      // true if read, false if unread
+	FeedURLOrigin string    // URL of the feed this item came from
 }
 
 // PageData holds the data for our templates
 type PageData struct {
-	Feeds     []Feed
-	FeedItems []FeedItem
-	Error     string
-	Filter    string // "all" or "unread"
-	BaseURL   string // e.g., "/"
+	Feeds          []Feed
+	FeedItems      []FeedItem
+	Error          string
+	Filter         string // "all" or "unread"
+	BaseURL        string // e.g., "/"
+	CurrentFeedURL string // To highlight the active feed filter
 }
 
 var (
@@ -180,28 +182,49 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	currentFilter := r.URL.Query().Get("filter")
+	currentFilter := r.URL.Query().Get("filter") // read/unread filter
 	if currentFilter == "" {
-		currentFilter = "all" // Default to showing all items
+		currentFilter = "all" 
 	}
+	currentFeedURLFilter := r.URL.Query().Get("feedURL") // feed source filter
 
 	var itemsToDisplay []FeedItem
+	
+	// Start with all feed items
+	workingItemsList := feedItems
+
+	// 1. Filter by feed URL if provided
+	if currentFeedURLFilter != "" {
+		var tempItems []FeedItem
+		for _, item := range workingItemsList {
+			if item.FeedURLOrigin == currentFeedURLFilter {
+				tempItems = append(tempItems, item)
+			}
+		}
+		workingItemsList = tempItems // Update working list
+	}
+
+	// 2. Then, filter by read/unread status on the (potentially feed-filtered) list
 	if currentFilter == "unread" {
-		for _, item := range feedItems {
+		for _, item := range workingItemsList {
 			if !item.Read {
 				itemsToDisplay = append(itemsToDisplay, item)
 			}
 		}
-	} else {
-		itemsToDisplay = make([]FeedItem, len(feedItems))
-		copy(itemsToDisplay, feedItems)
+	} else { // "all" (or no read/unread filter)
+		itemsToDisplay = make([]FeedItem, len(workingItemsList))
+		copy(itemsToDisplay, workingItemsList)
 	}
+	
+	// The items are sorted by date when feeds are added/refreshed.
+	// This order should be preserved through the filtering steps.
 
 	data := PageData{
-		Feeds:     feeds,
-		FeedItems: itemsToDisplay,
-		Filter:    currentFilter,
-		BaseURL:   "/", // Assuming the app runs at the root
+		Feeds:          feeds,
+		FeedItems:      itemsToDisplay,
+		Filter:         currentFilter,
+		BaseURL:        r.URL.Path, 
+		CurrentFeedURL: currentFeedURLFilter,
 	}
 	err := templates.ExecuteTemplate(w, "index.html", data)
 	if err != nil {
@@ -264,22 +287,34 @@ func handleAddFeed(w http.ResponseWriter, r *http.Request) {
 
 	// Add the feed items
 	for _, item := range feed.Items {
-		published := ""
+		// var published string // Not used directly here, formatted is used
 		var pubTime time.Time
-		if item.Published != "" {
-			published = item.Published
-			pubTime, _ = parseDate(item.Published)
-		} else if item.Updated != "" {
-			published = item.Updated
-			pubTime, _ = parseDate(item.Updated)
-		}
-		// Format for display
-		formatted := ""
-		if !pubTime.IsZero() {
+		var formatted string
+
+		if item.PublishedParsed != nil {
+			pubTime = *item.PublishedParsed
 			formatted = pubTime.Format("Jan 2, 2006 15:04")
-		} else {
-			formatted = published
+		} else if item.UpdatedParsed != nil {
+			pubTime = *item.UpdatedParsed
+			formatted = pubTime.Format("Jan 2, 2006 15:04")
+		} else if item.Published != "" {
+			parsed, pErr := parseDate(item.Published)
+			if pErr == nil {
+				pubTime = parsed
+				formatted = pubTime.Format("Jan 2, 2006 15:04")
+			} else {
+				formatted = item.Published 
+			}
+		} else if item.Updated != "" {
+			parsed, pErr := parseDate(item.Updated)
+			if pErr == nil {
+				pubTime = parsed
+				formatted = pubTime.Format("Jan 2, 2006 15:04")
+			} else {
+				formatted = item.Updated 
+			}
 		}
+
 		feedItems = append(feedItems, FeedItem{
 			Title:         item.Title,
 			Link:          item.Link,
@@ -287,7 +322,8 @@ func handleAddFeed(w http.ResponseWriter, r *http.Request) {
 			Published:     formatted,
 			FeedTitle:     feed.Title,
 			PublishedTime: pubTime,
-			Read:          getFeedItemReadStatus(item.Link), // Get existing or default to unread
+			Read:          getFeedItemReadStatus(item.Link), 
+			FeedURLOrigin: newFeed.URL,                      
 		})
 	}
 	sortFeedItemsByDate(feedItems)
@@ -334,10 +370,8 @@ func refreshFeeds() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	// Clear current items
 	feedItems = []FeedItem{}
 
-	// Refresh all feeds
 	fp := gofeed.NewParser()
 	for _, feed := range feeds {
 		parsedFeed, err := fp.ParseURL(feed.URL)
@@ -347,29 +381,42 @@ func refreshFeeds() {
 		}
 
 		for _, item := range parsedFeed.Items {
-			published := ""
 			var pubTime time.Time
-			if item.Published != "" {
-				published = item.Published
-				pubTime, _ = parseDate(item.Published)
-			} else if item.Updated != "" {
-				published = item.Updated
-				pubTime, _ = parseDate(item.Updated)
-			}
-			formatted := ""
-			if !pubTime.IsZero() {
+			var formatted string
+
+			if item.PublishedParsed != nil {
+				pubTime = *item.PublishedParsed
 				formatted = pubTime.Format("Jan 2, 2006 15:04")
-			} else {
-				formatted = published
+		} else if item.UpdatedParsed != nil {
+				pubTime = *item.UpdatedParsed
+				formatted = pubTime.Format("Jan 2, 2006 15:04")
+		} else if item.Published != "" {
+				parsed, pErr := parseDate(item.Published)
+				if pErr == nil {
+					pubTime = parsed
+					formatted = pubTime.Format("Jan 2, 2006 15:04")
+				} else {
+					formatted = item.Published 
+				}
+		} else if item.Updated != "" {
+				parsed, pErr := parseDate(item.Updated)
+				if pErr == nil {
+					pubTime = parsed
+					formatted = pubTime.Format("Jan 2, 2006 15:04")
+				} else {
+					formatted = item.Updated 
+				}
 			}
+			
 			feedItems = append(feedItems, FeedItem{
 				Title:         item.Title,
 				Link:          item.Link,
 				Description:   item.Description,
 				Published:     formatted,
-				FeedTitle:     parsedFeed.Title, // Use parsedFeed.Title here
+				FeedTitle:     parsedFeed.Title, 
 				PublishedTime: pubTime,
-				Read:          getFeedItemReadStatus(item.Link), // Get existing or default to unread
+				Read:          getFeedItemReadStatus(item.Link),
+				FeedURLOrigin: feed.URL, 
 			})
 		}
 	}
