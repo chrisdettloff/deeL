@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>deeL</title>
+    <script>
+      (function() {
+        const htmlElement = document.documentElement;
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme) {
+          htmlElement.setAttribute('data-theme', savedTheme);
+        } else if (prefersDark) {
+          htmlElement.setAttribute('data-theme', 'dark');
+          // Optionally, save this preference if you want the system preference to stick
+          // localStorage.setItem('theme', 'dark'); 
+        }
+        // If neither, the default 'light' from <html data-theme="light"> will apply
+      })();
+    </script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
