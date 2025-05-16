@@ -22,15 +22,30 @@ cd deeL
 2. Install dependencies and build:
 ```bash
 go mod tidy
-go build
+make build
 ```
 
 3. Run the application:
 ```bash
-./deeL
+make run
 ```
 
 The application will be available at `http://localhost:8080` by default.
+
+## Project Structure
+
+```
+├── cmd
+│   └── server         # Entry point for the application
+├── internal
+│   ├── database       # Database operations
+│   ├── feeds          # Feed processing and management
+│   ├── handlers       # HTTP handlers
+│   ├── models         # Data structures
+│   └── utils          # Utility functions
+├── static             # Static assets (CSS, JS, images)
+└── templates          # HTML templates
+```
 
 ## Usage
 
