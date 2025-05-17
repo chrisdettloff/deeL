@@ -1,4 +1,4 @@
-module github.com/yourusername/rss-reader
+module deel
 
 go 1.20
 
