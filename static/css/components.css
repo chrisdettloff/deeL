@@ -1,87 +1,6 @@
-:root {
-    /* Light theme variables */
-    --bg-primary: #f0f2f5;
-    --bg-secondary: #ffffff;
-    --text-primary: #2b2d42;
-    --text-secondary: #495057;
-    --text-muted: #6c757d;
-    --border-color: #e9ecef;
-    --primary-color: #E77E24; /* Updated */
-    --primary-hover: #D0701F; /* Updated - darker orange */
-    --danger-color: #e63946;
-    --success-color: #2a9d8f;
-    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --radius: 8px;
-    --transition: all 0.2s ease;
-    --sidebar-width: 320px;
-}
+/* Component Styling */
 
-[data-theme="dark"] {
-    /* Dark theme variables */
-    --bg-primary: #121212;
-    --bg-secondary: #1e1e1e;
-    --text-primary: #e9ecef;
-    --text-secondary: #adb5bd;
-    --text-muted: #6c757d;
-    --border-color: #2c2c2c;
-    --primary-color: #E77E24; /* Updated */
-    --primary-hover: #F38D3A; /* Updated - lighter/brighter orange */
-    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    line-height: 1.6;
-    color: var(--text-primary);
-    background-color: var(--bg-primary);
-    padding: 0;
-    margin: 0;
-    transition: background-color 0.3s ease;
-    min-height: 100vh;
-}
-
-header {
-    background-color: var(--bg-secondary);
-    box-shadow: var(--card-shadow);
-    padding: 1rem 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem; /* Optional: adds space between logo and h1 if they are side-by-side */
-}
-
-.logo {
-    height: 35px; /* Adjust as needed */
-    width: auto; /* Maintain aspect ratio */
-}
-
-h1 {
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--primary-color);
-    margin: 0;
-}
-
+/* Theme Toggle */
 .theme-toggle {
     background: none;
     border: none;
@@ -113,54 +32,6 @@ h1 {
     display: none;
 }
 
-/* Layout */
-.page-layout {
-    display: flex;
-    max-width: 1600px;
-    margin: 0 auto;
-    min-height: calc(100vh - 70px);
-}
-
-/* Sidebar */
-.sidebar {
-    width: var(--sidebar-width);
-    background-color: var(--bg-secondary);
-    border-right: 1px solid var(--border-color);
-    padding: 1.5rem;
-    flex-shrink: 0;
-    height: calc(100vh - 70px);
-    position: sticky;
-    top: 70px;
-    overflow-y: auto;
-}
-
-.sidebar-section {
-    margin-bottom: 2rem;
-}
-
-.sidebar-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.sidebar-title svg {
-    width: 18px;
-    height: 18px;
-    stroke: var(--text-primary);
-}
-
-/* Main Content */
-.main-content {
-    flex-grow: 1;
-    padding: 1.5rem;
-    overflow-x: hidden;
-}
-
 /* Form Styling */
 .feed-form input[type="url"] {
     width: 100%;
@@ -177,9 +48,10 @@ h1 {
 .feed-form input[type="url"]:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+    box-shadow: var(--primary-focus-shadow);
 }
 
+/* Button Styling */
 button {
     background-color: var(--primary-color);
     color: white;
@@ -222,6 +94,7 @@ button.text:hover {
     background-color: rgba(230, 57, 70, 0.1);
 }
 
+/* Error Message Styling */
 .error {
     background-color: rgba(230, 57, 70, 0.1);
     border-left: 4px solid var(--danger-color);
@@ -291,7 +164,7 @@ button.text:hover {
 .articles {
     display: grid;
     gap: 1.5rem;
-    grid-template-columns: 1fr; /* Changed from repeat(auto-fill, minmax(300px, 1fr)) */
+    grid-template-columns: 1fr;
 }
 
 .article {
@@ -337,14 +210,14 @@ button.text:hover {
 
 /* Styles for read/unread articles */
 .article.read {
-    opacity: 0.75; /* Make read articles slightly dimmer */
+    opacity: 0.75;
 }
 
 .article.read .article-content h2 a {
-    color: var(--text-muted); /* Dim the title of read articles */
+    color: var(--text-muted);
 }
 .article.read .article-content h2 a:hover {
-    color: var(--primary-color); /* Still allow hover highlight */
+    color: var(--primary-color);
 }
 
 .article-meta {
@@ -364,7 +237,7 @@ button.text:hover {
     background-color: var(--bg-secondary);
     color: var(--primary-color);
     border: 1px solid var(--primary-color);
-    line-height: 1.2; /* Adjust line height for small buttons */
+    line-height: 1.2;
 }
 
 .article-meta form button.small:hover {
@@ -420,6 +293,7 @@ button.text:hover {
     text-decoration: underline;
 }
 
+/* Empty State Styling */
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
@@ -440,67 +314,7 @@ button.text:hover {
     color: var(--text-primary);
 }
 
-/* Sidebar toggle for mobile */
-.sidebar-toggle {
-    display: none;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    color: white;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-}
-
-/* Responsive Styles */
-@media (max-width: 960px) {
-    .page-layout {
-        flex-direction: column;
-    }
-    
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        top: 0;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-    }
-    
-    .articles {
-        grid-template-columns: 1fr; /* Changed from repeat(auto-fill, minmax(250px, 1fr)) */
-    }
-}
-
-@media (max-width: 768px) {
-    .articles {
-        grid-template-columns: 1fr; /* This was already 1fr, so it's consistent */
-    }
-    
-    /* Collapsible sidebar for mobile */
-    .sidebar {
-        position: fixed;
-        left: -100%;
-        z-index: 999;
-        transition: left 0.3s ease;
-        height: calc(100vh - 70px);
-    }
-    
-    .sidebar.open {
-        left: 0;
-    }
-    
-    .sidebar-toggle {
-        display: flex;
-    }
-}
-
-/* Styles for filter buttons */
+/* Filter Button Styling */
 .filter-button {
     padding: 0.5rem 0.75rem;
     border-radius: var(--radius);
@@ -520,24 +334,19 @@ button.text:hover {
     color: white;
 }
 
-/* New style for when a feed filter is active, but the main filter is also active */
 .filter-button.semi-active {
-    background-color: var(--primary-hover); /* A slightly different shade */
+    background-color: var(--primary-hover);
     color: white;
     border-color: var(--primary-color);
 }
 
-/* Style for selected article */
+/* Selected Article Styling */
 .article.selected {
-    border-left-width: 5px; /* Make the existing primary color border thicker or change border */
-    border-left-color: var(--primary-hover); /* Use a slightly different color for selection */
-    box-shadow: 0 0 12px rgba(67, 97, 238, 0.3); /* Add a more prominent shadow */
+    border-left-width: 5px;
+    border-left-color: var(--primary-hover);
+    box-shadow: var(--primary-selection-shadow);
 }
 .article.read.selected {
-    border-left-color: var(--text-muted); /* Different selection color if already read */
+    border-left-color: var(--text-muted);
      box-shadow: 0 0 12px rgba(108, 117, 125, 0.3);
 }
-
-
-/* Ensure main action buttons (like Mark All Unread) use existing button styles */
-/* No new style needed if it reuses the default button style */

@@ -1,0 +1,35 @@
+:root {
+    /* Light theme variables */
+    --bg-primary: #f0f2f5;
+    --bg-secondary: #ffffff;
+    --text-primary: #2b2d42;
+    --text-secondary: #495057;
+    --text-muted: #6c757d;
+    --border-color: #e9ecef;
+    --primary-color: #E77E24; /* Updated */
+    --primary-hover: #D0701F; /* Updated - darker orange */
+    --danger-color: #e63946;
+    --success-color: #2a9d8f;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --radius: 8px;
+    --transition: all 0.2s ease;
+    --sidebar-width: 320px;
+
+    /* Primary color with opacity for consistent theming */
+    --primary-color-rgb: 231, 126, 36;
+    --primary-focus-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+    --primary-selection-shadow: 0 0 12px rgba(var(--primary-color-rgb), 0.3);
+}
+
+[data-theme="dark"] {
+    /* Dark theme variables */
+    --bg-primary: #121212;
+    --bg-secondary: #1e1e1e;
+    --text-primary: #e9ecef;
+    --text-secondary: #adb5bd;
+    --text-muted: #6c757d;
+    --border-color: #2c2c2c;
+    --primary-color: #E77E24; /* Updated */
+    --primary-hover: #F38D3A; /* Updated - lighter/brighter orange */
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
