@@ -4,7 +4,21 @@ export function initArticles() {
     const globalToggleReadButton = document.getElementById('global-toggle-read-button');
     let selectedArticle = null;
 
-    // Use event delegation for better performance
+    // Handle "Read more" link clicks to mark as read
+    document.addEventListener('click', (event) => {
+        // Check if clicked element is a "Read more" link
+        const readMoreLink = event.target.closest('.article-link a');
+        if (readMoreLink) {
+            const article = readMoreLink.closest('.article');
+            if (article && article.dataset.read === 'false') {
+                // Mark as read before opening the link
+                markArticleAsRead(article.dataset.link);
+            }
+            return; // Let the link work normally
+        }
+    });
+
+    // Use event delegation for article selection
     document.addEventListener('click', (event) => {
         // Find the closest article if clicked within one
         const article = event.target.closest('.article');
@@ -71,5 +85,34 @@ export function initArticles() {
 
         document.body.appendChild(form);
         form.submit();
+    }
+
+    function markArticleAsRead(itemLink) {
+        // Send async request to mark as read without redirecting
+        fetch('/toggle-read', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `link=${encodeURIComponent(itemLink)}`
+        }).then(response => {
+            if (response.ok) {
+                // Update the article's visual state immediately
+                const articles = document.querySelectorAll('.article');
+                const article = Array.from(articles).find(a => a.dataset.link === itemLink);
+                if (article) {
+                    article.classList.remove('unread');
+                    article.classList.add('read');
+                    article.dataset.read = 'true';
+                    
+                    // Update toggle button text if this article is selected
+                    if (article === selectedArticle) {
+                        updateGlobalToggleButtonText();
+                    }
+                }
+            }
+        }).catch(error => {
+            console.error('Error marking article as read:', error);
+        });
     }
 }
