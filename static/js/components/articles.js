@@ -4,12 +4,12 @@ export function initArticles() {
     const globalToggleReadButton = document.getElementById('global-toggle-read-button');
     let selectedArticle = null;
 
-    // Handle "Read more" link clicks to mark as read
+    // Handle any article link click to mark as read
     document.addEventListener('click', (event) => {
-        // Check if clicked element is a "Read more" link
-        const readMoreLink = event.target.closest('.article-link a');
-        if (readMoreLink) {
-            const article = readMoreLink.closest('.article');
+        // Check if clicked element is a link inside an article
+        const articleLink = event.target.closest('.article a');
+        if (articleLink) {
+            const article = articleLink.closest('.article');
             if (article && article.dataset.read === 'false') {
                 // Mark as read before opening the link
                 markArticleAsRead(article.dataset.link);
