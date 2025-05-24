@@ -144,9 +144,15 @@
         <!-- Main Content Area -->
         <main class="main-content">
             <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <span style="font-weight: 500;">Filter:</span>
-                <a href="{{.BaseURL}}?filter=all{{if .CurrentFeedURL}}&feedURL={{.CurrentFeedURL | urlquery}}{{end}}" class="filter-button {{if and (or (eq .Filter "all") (eq .Filter "")) (not .CurrentFeedURL)}}active{{else if and (or (eq .Filter "all") (eq .Filter "")) .CurrentFeedURL}} semi-active {{end}}">All Articles ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})</a>
-                <a href="{{.BaseURL}}?filter=unread{{if .CurrentFeedURL}}&feedURL={{.CurrentFeedURL | urlquery}}{{end}}" class="filter-button {{if and (eq .Filter "unread") (not .CurrentFeedURL) }}active{{else if and (eq .Filter "unread") .CurrentFeedURL}} semi-active {{end}}">Unread Only ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})</a>
+                <label for="filter-dropdown" style="font-weight: 500;">Filter:</label>
+                <select id="filter-dropdown" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); color: var(--text-color);">
+                    <option value="all" {{if or (eq .Filter "all") (eq .Filter "")}}selected{{end}}>
+                        All Articles ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
+                    </option>
+                    <option value="unread" {{if eq .Filter "unread"}}selected{{end}}>
+                        Unread Only ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
+                    </option>
+                </select>
                 <form action="/mark-all-read" method="post" style="margin-left: auto; margin-right: 10px;">
                     <button type="submit">Mark All Unread as Read</button>
                 </form>
