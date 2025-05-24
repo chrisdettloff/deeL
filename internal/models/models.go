@@ -5,8 +5,9 @@ import "time"
 
 // Feed represents an RSS feed
 type Feed struct {
-	URL   string
-	Title string
+	URL         string
+	Title       string
+	UnreadCount int // Number of unread items for this feed
 }
 
 // FeedItem represents an item from an RSS feed

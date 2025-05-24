@@ -91,6 +91,7 @@ func (m *Manager) RefreshFeeds() {
 		}
 	}
 	m.SortFeedItemsByDate()
+	m.UpdateUnreadCounts()
 }
 
 // AddFeed adds a new feed
@@ -163,6 +164,7 @@ func (m *Manager) AddFeed(feedURL string) (*models.Feed, error) {
 		})
 	}
 	m.SortFeedItemsByDate()
+	m.UpdateUnreadCounts()
 
 	return &newFeed, nil
 }
@@ -204,6 +206,7 @@ func (m *Manager) ToggleReadStatus(itemLink string) error {
 			break
 		}
 	}
+	m.UpdateUnreadCounts()
 	return nil
 }
 
@@ -219,6 +222,7 @@ func (m *Manager) MarkAllRead() error {
 			m.FeedItems[i].Read = true // Update in-memory representation
 		}
 	}
+	m.UpdateUnreadCounts()
 	return nil
 }
 
@@ -260,4 +264,24 @@ func (m *Manager) SortFeedItemsByDate() {
 	sort.Slice(m.FeedItems, func(i, j int) bool {
 		return m.FeedItems[i].PublishedTime.After(m.FeedItems[j].PublishedTime)
 	})
+}
+
+// UpdateUnreadCounts calculates and updates the unread count for each feed
+func (m *Manager) UpdateUnreadCounts() {
+	// Reset all counts
+	for i := range m.Feeds {
+		m.Feeds[i].UnreadCount = 0
+	}
+	
+	// Count unread items for each feed
+	for _, item := range m.FeedItems {
+		if !item.Read {
+			for i := range m.Feeds {
+				if m.Feeds[i].URL == item.FeedURLOrigin {
+					m.Feeds[i].UnreadCount++
+					break
+				}
+			}
+		}
+	}
 }

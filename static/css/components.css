@@ -149,15 +149,28 @@ button.text:hover {
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.actions {
-    width: 100%;
-    margin-top: 1rem;
+/* Unread count badge */
+.unread-count {
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    margin-left: 0.5rem;
+    min-width: 1.5rem;
+    text-align: center;
+    flex-shrink: 0;
 }
 
-.actions button {
-    width: 100%;
+.feed-item.active-feed-filter .unread-count {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
 }
 
 /* Articles Styling */

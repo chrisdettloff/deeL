@@ -109,6 +109,9 @@
                                 <a href="{{ $feedFilterLink }}" class="feed-title-link" title="{{.Title}}">
                                     <div class="feed-title">
                                         {{.Title}}
+                                        {{if gt .UnreadCount 0}}
+                                            <span class="unread-count">{{.UnreadCount}}</span>
+                                        {{end}}
                                     </div>
                                 </a>
                                 <form action="/remove" method="post" onsubmit="return confirm('Remove this feed?');">
