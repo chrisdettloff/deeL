@@ -114,13 +114,13 @@ button.text:hover {
 .feed-item {
     background-color: var(--bg-secondary);
     border-radius: var(--radius);
-    padding: 0.75rem;
+    padding: 0;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
     transition: var(--transition);
     border-left: 3px solid var(--primary-color);
     border: 1px solid var(--border-color);
+    position: relative;
 }
 
 .feed-item:hover {
@@ -129,7 +129,7 @@ button.text:hover {
 
 .feed-item.active-feed-filter {
     background-color: var(--primary-color);
-    border-left-color: var(--primary-hover); /* Darken the left border a bit */
+    border-left-color: var(--primary-hover);
 }
 
 .feed-item.active-feed-filter .feed-title {
@@ -137,21 +137,57 @@ button.text:hover {
     font-weight: 600;
 }
 
+.feed-content {
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.feed-content:hover {
+    background-color: rgba(128, 128, 128, 0.05);
+}
+
+.feed-item.active-feed-filter .feed-content:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-arrow {
+    transition: transform 0.2s ease;
+    stroke: var(--text-muted);
+}
+
+.feed-item.active-feed-filter .dropdown-arrow {
+    stroke: white;
+}
+
+.feed-dropdown.show .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
 .feed-title-link {
     text-decoration: none;
-    flex-grow: 1; /* Allow link to take available space */
-    overflow: hidden; /* Prevent title from breaking layout */
+    flex-grow: 1;
+    overflow: hidden;
 }
 
 .feed-title {
     font-weight: 500;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.feed-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
 }
 
 /* Unread count badge */
@@ -162,7 +198,6 @@ button.text:hover {
     font-weight: 600;
     padding: 0.2rem 0.5rem;
     border-radius: 10px;
-    margin-left: 0.5rem;
     min-width: 1.5rem;
     text-align: center;
     flex-shrink: 0;
@@ -171,6 +206,63 @@ button.text:hover {
 .feed-item.active-feed-filter .unread-count {
     background-color: rgba(255, 255, 255, 0.3);
     color: white;
+}
+
+/* Feed Dropdown Menu */
+.feed-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--card-shadow);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+}
+
+.feed-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.dropdown-item:hover {
+    background-color: var(--bg-primary);
+}
+
+.dropdown-item.delete-item {
+    color: var(--danger-color);
+}
+
+.dropdown-item.delete-item:hover {
+    background-color: rgba(230, 57, 70, 0.1);
+}
+
+.dropdown-item svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
 }
 
 /* Articles Styling */

@@ -96,33 +96,43 @@
                     
                     <div class="feeds-list">
                         {{range .Feeds}}
-                            <div class="feed-item {{if eq .URL $.CurrentFeedURL}}active-feed-filter{{end}}">
-                                {{/* Construct the link dynamically */}}
-                                {{ $feedFilterLink := "" }}
-                                {{ if eq .URL $.CurrentFeedURL }}
-                                    {{/* This feed is currently active, link should clear it but keep read/unread filter */}}
-                                    {{ $feedFilterLink = printf "%s?filter=%s" $.BaseURL $.Filter }}
-                                {{ else }}
-                                    {{/* This feed is not active, link should activate it and keep read/unread filter */}}
-                                    {{ $feedFilterLink = printf "%s?filter=%s&feedURL=%s" $.BaseURL $.Filter (.URL | urlquery) }}
-                                {{ end }}
-                                <a href="{{ $feedFilterLink }}" class="feed-title-link" title="{{.Title}}">
+                            <div class="feed-item {{if eq .URL $.CurrentFeedURL}}active-feed-filter{{end}}" data-feed-url="{{.URL}}">
+                                <div class="feed-content" onclick="toggleFeedDropdown(event, '{{.URL}}')">
                                     <div class="feed-title">
-                                        {{.Title}}
                                         {{if gt .UnreadCount 0}}
                                             <span class="unread-count">{{.UnreadCount}}</span>
                                         {{end}}
+                                        <span class="feed-name">{{.Title}}</span>
                                     </div>
-                                </a>
-                                <form action="/remove" method="post" onsubmit="return confirm('Remove this feed?');">
-                                    <input type="hidden" name="feed_url" value="{{.URL}}">
-                                    <button type="submit" class="text">
+                                    <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="feed-dropdown" id="dropdown-{{.URL | urlquery}}">
+                                    {{/* Construct the filter link dynamically */}}
+                                    {{ $feedFilterLink := "" }}
+                                    {{ if eq .URL $.CurrentFeedURL }}
+                                        {{/* This feed is currently active, link should clear it but keep read/unread filter */}}
+                                        {{ $feedFilterLink = printf "%s?filter=%s" $.BaseURL $.Filter }}
+                                    {{ else }}
+                                        {{/* This feed is not active, link should activate it and keep read/unread filter */}}
+                                        {{ $feedFilterLink = printf "%s?filter=%s&feedURL=%s" $.BaseURL $.Filter (.URL | urlquery) }}
+                                    {{ end }}
+                                    <a href="{{ $feedFilterLink }}" class="dropdown-item">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                                         </svg>
+                                        {{if eq .URL $.CurrentFeedURL}}Clear Filter{{else}}Filter Feed{{end}}
+                                    </a>
+                                    <button class="dropdown-item delete-item" onclick="deleteFeed(event, '{{.URL}}', '{{.Title}}')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="m19 6-1 14c-.05.59-.24 1.16-.58 1.63A2 2 0 0 1 15.8 23H8.2a2 2 0 0 1-1.62-1.37c-.34-.47-.53-1.04-.58-1.63L5 6"></path>
+                                            <path d="m9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                                        </svg>
+                                        Delete Feed
                                     </button>
-                                </form>
+                                </div>
                             </div>
                         {{end}}
                     </div>
@@ -215,5 +225,53 @@
     </div>
 
     <script type="module" src="/static/js/main.js"></script>
+    <script>
+        function toggleFeedDropdown(event, feedUrl) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Close all other dropdowns first
+            const allDropdowns = document.querySelectorAll('.feed-dropdown');
+            allDropdowns.forEach(dropdown => {
+                if (dropdown.id !== `dropdown-${encodeURIComponent(feedUrl)}`) {
+                    dropdown.classList.remove('show');
+                }
+            });
+            
+            // Toggle the current dropdown
+            const dropdown = document.getElementById(`dropdown-${encodeURIComponent(feedUrl)}`);
+            dropdown.classList.toggle('show');
+        }
+        
+        function deleteFeed(event, feedUrl, feedTitle) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            if (confirm(`Remove "${feedTitle}" feed?`)) {
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = '/remove';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'feed_url';
+                input.value = feedUrl;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.feed-item')) {
+                const allDropdowns = document.querySelectorAll('.feed-dropdown');
+                allDropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('show');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
