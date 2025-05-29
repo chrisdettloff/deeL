@@ -455,3 +455,74 @@ button.text:hover {
     border-left-color: var(--text-muted);
      box-shadow: 0 0 12px rgba(108, 117, 125, 0.3);
 }
+
+/* Custom Filter Dropdown Styling */
+.custom-filter-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.filter-dropdown-toggle {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: var(--transition);
+    min-width: 250px;
+    gap: 0.5rem;
+}
+
+.filter-dropdown-toggle:hover {
+    box-shadow: var(--card-shadow);
+}
+
+.filter-dropdown-text {
+    color: var(--text-primary);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.filter-dropdown-toggle .dropdown-arrow {
+    transition: transform 0.2s ease;
+    stroke: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.filter-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--card-shadow);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    margin-top: 0.25rem;
+}
+
+.filter-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.filter-dropdown-menu .dropdown-item.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.filter-dropdown-menu .dropdown-item.active svg {
+    stroke: white;
+}

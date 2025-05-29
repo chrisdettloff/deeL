@@ -157,15 +157,48 @@
         <!-- Main Content Area -->
         <main class="main-content">
             <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <label for="filter-dropdown" style="font-weight: 500;">Filter:</label>
-                <select id="filter-dropdown" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); color: var(--text-color);">
-                    <option value="all" {{if or (eq .Filter "all") (eq .Filter "")}}selected{{end}}>
-                        All Articles ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
-                    </option>
-                    <option value="unread" {{if eq .Filter "unread"}}selected{{end}}>
-                        Unread Only ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
-                    </option>
-                </select>
+                <label style="font-weight: 500;">Filter:</label>
+                <div class="custom-filter-dropdown">
+                    <div class="filter-dropdown-toggle" onclick="toggleFilterDropdown(event)">
+                        <span class="filter-dropdown-text">
+                            {{if eq .Filter "unread"}}
+                                Unread Only ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
+                            {{else}}
+                                All Articles ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
+                            {{end}}
+                        </span>
+                        <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="filter-dropdown-menu" id="filter-dropdown-menu">
+                        {{/* Construct the filter links dynamically */}}
+                        {{ $allFilterLink := "" }}
+                        {{ $unreadFilterLink := "" }}
+                        {{ if .CurrentFeedURL }}
+                            {{ $allFilterLink = printf "%s?filter=all&feedURL=%s" $.BaseURL (.CurrentFeedURL | urlquery) }}
+                            {{ $unreadFilterLink = printf "%s?filter=unread&feedURL=%s" $.BaseURL (.CurrentFeedURL | urlquery) }}
+                        {{ else }}
+                            {{ $allFilterLink = printf "%s?filter=all" $.BaseURL }}
+                            {{ $unreadFilterLink = printf "%s?filter=unread" $.BaseURL }}
+                        {{ end }}
+                        <a href="{{ $allFilterLink }}" class="dropdown-item {{if or (eq .Filter "all") (eq .Filter "")}}active{{end}}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="m2 17 10 5 10-5"></path>
+                                <path d="m2 12 10 5 10-5"></path>
+                            </svg>
+                            All Articles ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
+                        </a>
+                        <a href="{{ $unreadFilterLink }}" class="dropdown-item {{if eq .Filter "unread"}}active{{end}}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <path d="m12 2.05 3.5 6.1 6.95.05-5.6 4.25 2.1 6.55-6.85-4.1-6.85 4.1 2.1-6.55-5.6-4.25 6.95-.05L12 2.05Z"></path>
+                            </svg>
+                            Unread Only ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
+                        </a>
+                    </div>
+                </div>
                 <form action="/mark-all-read" method="post" style="margin-left: auto; margin-right: 10px;">
                     <button type="submit">Mark All Unread as Read</button>
                 </form>
@@ -226,6 +259,23 @@
 
     <script type="module" src="/static/js/main.js"></script>
     <script>
+        function toggleFilterDropdown(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const dropdown = document.getElementById('filter-dropdown-menu');
+            const arrow = event.currentTarget.querySelector('.dropdown-arrow');
+            
+            dropdown.classList.toggle('show');
+            
+            // Update arrow rotation based on dropdown state
+            if (dropdown.classList.contains('show')) {
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+        
         function toggleFeedDropdown(event, feedUrl) {
             event.preventDefault();
             event.stopPropagation();
@@ -265,11 +315,24 @@
         
         // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
+            // Close feed dropdowns
             if (!event.target.closest('.feed-item')) {
                 const allDropdowns = document.querySelectorAll('.feed-dropdown');
                 allDropdowns.forEach(dropdown => {
                     dropdown.classList.remove('show');
                 });
+            }
+            
+            // Close filter dropdown
+            if (!event.target.closest('.custom-filter-dropdown')) {
+                const filterDropdown = document.getElementById('filter-dropdown-menu');
+                const filterArrow = document.querySelector('.filter-dropdown-toggle .dropdown-arrow');
+                if (filterDropdown) {
+                    filterDropdown.classList.remove('show');
+                    if (filterArrow) {
+                        filterArrow.style.transform = 'rotate(0deg)';
+                    }
+                }
             }
         });
     </script>
