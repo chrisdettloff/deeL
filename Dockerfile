@@ -30,6 +30,9 @@ COPY --from=builder /app/templates ./templates
 # Create a data directory for persistence
 RUN mkdir -p /app/data
 
+# Declare volume for data persistence
+VOLUME ["/app/data"]
+
 # Expose the port the app runs on
 EXPOSE 8080
 
