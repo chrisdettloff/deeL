@@ -20,6 +20,9 @@ const (
 	
 	// FeedItemStatusBucketName is the name of the bucket for feed item statuses
 	FeedItemStatusBucketName = "feedItemStatus"
+
+	// FeedItemFavoriteBucketName is the name of the bucket for feed item favorite statuses
+	FeedItemFavoriteBucketName = "feedItemFavorite"
 )
 
 // DB wraps the bolt database
@@ -41,6 +44,10 @@ func NewDB() (*DB, error) {
 			return err
 		}
 		_, err = tx.CreateBucketIfNotExists([]byte(FeedItemStatusBucketName))
+		if err != nil {
+			return err
+		}
+		_, err = tx.CreateBucketIfNotExists([]byte(FeedItemFavoriteBucketName))
 		return err
 	})
 	if err != nil {
@@ -115,12 +122,43 @@ func (db *DB) GetFeedItemReadStatus(link string) bool {
 	return isRead
 }
 
-// SetFeedItemReadStatus stores the read status of a feed item in the database.
+// SetFeedItemReadStatus sets the read status of a feed item in the database.
 func (db *DB) SetFeedItemReadStatus(link string, read bool) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(FeedItemStatusBucketName))
 		val := "false"
 		if read {
+			val = "true"
+		}
+		return b.Put([]byte(link), []byte(val))
+	})
+}
+
+// GetFeedItemFavoriteStatus retrieves the favorite status of a feed item from the database.
+// It defaults to false (not favorited) if the item is not found.
+func (db *DB) GetFeedItemFavoriteStatus(link string) bool {
+	var isFavorite bool
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(FeedItemFavoriteBucketName))
+		val := b.Get([]byte(link))
+		if val != nil {
+			isFavorite = (string(val) == "true")
+		}
+		return nil
+	})
+	if err != nil {
+		log.Printf("Error getting favorite status for %s: %v", link, err)
+		return false // Default to false on error
+	}
+	return isFavorite
+}
+
+// SetFeedItemFavoriteStatus sets the favorite status of a feed item in the database.
+func (db *DB) SetFeedItemFavoriteStatus(link string, favorite bool) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(FeedItemFavoriteBucketName))
+		val := "false"
+		if favorite {
 			val = "true"
 		}
 		return b.Put([]byte(link), []byte(val))

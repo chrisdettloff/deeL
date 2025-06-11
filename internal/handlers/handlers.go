@@ -32,14 +32,14 @@ func (h *Handler) HandleIndex(w http.ResponseWriter, r *http.Request) {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
 
-	currentFilter := r.URL.Query().Get("filter") // read/unread filter
+	currentFilter := r.URL.Query().Get("filter") // read/unread/favorites filter
 	if currentFilter == "" {
-		currentFilter = "all" 
+		currentFilter = "all"
 	}
 	currentFeedURLFilter := r.URL.Query().Get("feedURL") // feed source filter
 
 	itemsToDisplay := h.FeedManager.GetFilteredItems(currentFilter, currentFeedURLFilter)
-	
+
 	data := models.PageData{
 		Feeds:          h.FeedManager.Feeds,
 		FeedItems:      itemsToDisplay,
@@ -120,6 +120,36 @@ func (h *Handler) HandleRemoveFeed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther) // Redirect back
+}
+
+// HandleToggleFavorite handles toggling the favorite status of a feed item
+func (h *Handler) HandleToggleFavorite(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	itemLink := r.FormValue("link")
+	if itemLink == "" {
+		http.Error(w, "Missing item link", http.StatusBadRequest)
+		return
+	}
+
+	h.Mutex.Lock()
+	err := h.FeedManager.ToggleFavoriteStatus(itemLink)
+	h.Mutex.Unlock()
+
+	if err != nil {
+		log.Printf("Error toggling favorite status in handler: %v", err)
+		http.Error(w, "Failed to toggle favorite status", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with success, or redirect, or send back updated item status
+	// For a simple HTMX/AJAX update, a 200 OK might be sufficient
+	// Or send back the new favorite status
+	// For now, just a success status. Client-side will update UI.
+	w.WriteHeader(http.StatusOK)
 }
 
 // HandleToggleReadStatus handles toggling the read status of a feed item

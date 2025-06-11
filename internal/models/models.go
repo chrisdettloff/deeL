@@ -19,6 +19,7 @@ type FeedItem struct {
 	FeedTitle     string
 	PublishedTime time.Time // used for sorting, not shown in template
 	Read          bool      // true if read, false if unread
+	Favorite      bool      // true if favorited
 	FeedURLOrigin string    // URL of the feed this item came from
 }
 

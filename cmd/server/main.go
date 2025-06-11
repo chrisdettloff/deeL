@@ -42,6 +42,7 @@ func main() {
 	http.HandleFunc("/remove", handler.HandleRemoveFeed)
 	http.HandleFunc("/toggle-read", handler.HandleToggleReadStatus)
 	http.HandleFunc("/mark-all-read", handler.HandleMarkAllRead)
+	http.HandleFunc("/toggle-favorite", handler.HandleToggleFavorite) // Add this line
 
 	// Start the server
 	log.Println("Starting server on :8080")

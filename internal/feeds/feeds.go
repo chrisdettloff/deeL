@@ -86,6 +86,7 @@ func (m *Manager) RefreshFeeds() {
 				FeedTitle:     parsedFeed.Title,
 				PublishedTime: pubTime,
 				Read:          m.DB.GetFeedItemReadStatus(item.Link),
+				Favorite:      m.DB.GetFeedItemFavoriteStatus(item.Link), // Add this line
 				FeedURLOrigin: feed.URL,
 			})
 		}
@@ -160,6 +161,7 @@ func (m *Manager) AddFeed(feedURL string) (*models.Feed, error) {
 			FeedTitle:     feed.Title,
 			PublishedTime: pubTime,
 			Read:          m.DB.GetFeedItemReadStatus(item.Link),
+			Favorite:      m.DB.GetFeedItemFavoriteStatus(item.Link), // Add this line
 			FeedURLOrigin: newFeed.URL,
 		})
 	}
@@ -210,6 +212,27 @@ func (m *Manager) ToggleReadStatus(itemLink string) error {
 	return nil
 }
 
+// ToggleFavoriteStatus toggles the favorite status of a single feed item
+func (m *Manager) ToggleFavoriteStatus(itemLink string) error {
+	currentStatus := m.DB.GetFeedItemFavoriteStatus(itemLink)
+	newStatus := !currentStatus
+	err := m.DB.SetFeedItemFavoriteStatus(itemLink, newStatus)
+	if err != nil {
+		log.Printf("Error toggling favorite status for %s: %v", itemLink, err)
+		return err
+	}
+
+	// Update in-memory feedItems for immediate reflection
+	for i, item := range m.FeedItems {
+		if item.Link == itemLink {
+			m.FeedItems[i].Favorite = newStatus
+			break
+		}
+	}
+	// Note: Unlike read status, unread counts are not affected by favoriting.
+	return nil
+}
+
 // MarkAllRead marks all currently unread feed items as read
 func (m *Manager) MarkAllRead() error {
 	for i, item := range m.FeedItems {
@@ -244,10 +267,16 @@ func (m *Manager) GetFilteredItems(filter, feedURL string) []models.FeedItem {
 		workingItemsList = tempItems // Update working list
 	}
 
-	// 2. Then, filter by read/unread status on the (potentially feed-filtered) list
+	// 2. Then, filter by read/unread/favorite status on the (potentially feed-filtered) list
 	if filter == "unread" {
 		for _, item := range workingItemsList {
 			if !item.Read {
+				itemsToDisplay = append(itemsToDisplay, item)
+			}
+		}
+	} else if filter == "favorites" { // Add this condition
+		for _, item := range workingItemsList {
+			if item.Favorite {
 				itemsToDisplay = append(itemsToDisplay, item)
 			}
 		}
