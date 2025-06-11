@@ -175,12 +175,16 @@
                         {{/* Construct the filter links dynamically */}}
                         {{ $allFilterLink := "" }}
                         {{ $unreadFilterLink := "" }}
+                        {{ $favoritesFilterLink := "" }}
+
                         {{ if .CurrentFeedURL }}
                             {{ $allFilterLink = printf "%s?filter=all&feedURL=%s" $.BaseURL (.CurrentFeedURL | urlquery) }}
                             {{ $unreadFilterLink = printf "%s?filter=unread&feedURL=%s" $.BaseURL (.CurrentFeedURL | urlquery) }}
+                            {{ $favoritesFilterLink = printf "%s?filter=favorites&feedURL=%s" $.BaseURL (.CurrentFeedURL | urlquery) }}
                         {{ else }}
                             {{ $allFilterLink = printf "%s?filter=all" $.BaseURL }}
                             {{ $unreadFilterLink = printf "%s?filter=unread" $.BaseURL }}
+                            {{ $favoritesFilterLink = printf "%s?filter=favorites" $.BaseURL }}
                         {{ end }}
                         <a href="{{ $allFilterLink }}" class="dropdown-item {{if or (eq .Filter "all") (eq .Filter "")}}active{{end}}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -197,6 +201,12 @@
                             </svg>
                             Unread Only ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
                         </a>
+                        <a href="{{ $favoritesFilterLink }}" class="dropdown-item {{if eq .Filter "favorites"}}active{{end}}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            Favorites Only ({{if .CurrentFeedURL}}in selected feed{{else}}all feeds{{end}})
+                        </a>
                     </div>
                 </div>
                 <form action="/mark-all-read" method="post" style="margin-left: auto; margin-right: 10px;">
@@ -206,9 +216,16 @@
             </div>
 
             {{if .FeedItems}}
-                <div class="articles">
+                <div class="articles" id="articles-list">
                     {{range .FeedItems}}
-                        <div class="article {{if .Read}}read{{else}}unread{{end}}" data-link="{{.Link}}" data-read="{{.Read}}">
+                        <article class="article {{if .Read}}read{{end}} {{if .Favorite}}favorited{{end}}" data-link="{{.Link}}" data-read="{{.Read}}" data-favorite="{{.Favorite}}">
+                            <div class="article-header">
+                                <span class="article-source">{{.FeedTitle}}</span>
+                                <button class="favorite-toggle {{if .Favorite}}active{{end}}" aria-label="Toggle favorite" data-link="{{.Link}}">
+                                    <svg class="star-outline" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                    <svg class="star-filled" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                </button>
+                            </div>
                             <div class="article-content">
                                 <h2><a href="{{.Link}}" target="_blank" rel="noopener noreferrer">{{.Title}}</a></h2>
                                 <div class="article-meta">
@@ -231,7 +248,7 @@
                                     </a>
                                 </div>
                             </div>
-                        </div>
+                        </article>
                     {{end}}
                 </div>
             {{else}}

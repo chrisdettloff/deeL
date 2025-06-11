@@ -283,12 +283,71 @@ button.text:hover {
     height: 100%;
     transition: var(--transition);
     border: 1px solid var(--border-color);
+    position: relative; /* Added for positioning favorite button */
 }
 
 .article:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
+
+.article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1.25rem 0; /* Adjusted padding */
+    /* margin-bottom: 0.5rem; */ /* Removed or adjust as needed */
+}
+
+.article-source {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 500;
+    /* margin-right: auto; */ /* Pushes favorite button to the right if not using space-between */
+}
+
+.favorite-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted); /* Default color for the star outline */
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorite-toggle svg {
+    width: 20px;
+    height: 20px;
+    transition: var(--transition);
+}
+
+.favorite-toggle .star-filled {
+    display: none;
+}
+.favorite-toggle .star-outline {
+    display: block;
+}
+
+.favorite-toggle.active .star-filled {
+    display: block;
+    color: var(--warning-color); /* Gold/Yellow for favorited */
+}
+.favorite-toggle.active .star-outline {
+    display: none;
+}
+
+.favorite-toggle:hover .star-outline {
+    color: var(--warning-color); /* Gold/Yellow on hover */
+}
+.favorite-toggle.active:hover .star-filled {
+    color: var(--warning-hover); /* Slightly darker gold/yellow on hover if active */
+}
+
 
 .article-content {
     padding: 1.25rem;
@@ -494,6 +553,10 @@ button.text:hover {
     transition: transform 0.2s ease;
     stroke: var(--text-muted);
     flex-shrink: 0;
+}
+
+.filter-dropdown-toggle .dropdown-arrow.rotate {
+    transform: rotate(180deg);
 }
 
 .filter-dropdown-menu {

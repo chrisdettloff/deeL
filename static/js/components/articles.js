@@ -20,6 +20,15 @@ export function initArticles() {
 
     // Use event delegation for article selection
     document.addEventListener('click', (event) => {
+        // Handle favorite toggle
+        const favoriteButton = event.target.closest('.favorite-toggle');
+        if (favoriteButton) {
+            event.stopPropagation(); // Prevent article selection when clicking favorite
+            const itemLink = favoriteButton.dataset.link;
+            toggleFavoriteStatus(itemLink, favoriteButton);
+            return;
+        }
+
         // Find the closest article if clicked within one
         const article = event.target.closest('.article');
         
@@ -85,6 +94,34 @@ export function initArticles() {
 
         document.body.appendChild(form);
         form.submit();
+    }
+
+    function toggleFavoriteStatus(itemLink, buttonElement) {
+        fetch('/toggle-favorite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `link=${encodeURIComponent(itemLink)}`
+        })
+        .then(response => {
+            if (response.ok) {
+                // Toggle active class on button and article's data-favorite attribute
+                const articleElement = buttonElement.closest('.article');
+                if (articleElement) {
+                    const isFavorited = articleElement.dataset.favorite === 'true';
+                    articleElement.dataset.favorite = isFavorited ? 'false' : 'true';
+                    articleElement.classList.toggle('favorited');
+                    buttonElement.classList.toggle('active');
+                }
+            } else {
+                console.error('Failed to toggle favorite status');
+                // Optionally, revert UI change or show error to user
+            }
+        })
+        .catch(error => {
+            console.error('Error toggling favorite status:', error);
+        });
     }
 
     function markArticleAsRead(itemLink) {
